@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="konva.min.js"></script>
+    <script src="time_lookup.js"></script>
+    <meta charset="utf-8" />
+    <title>Time</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background-color: black;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="container"></div>
+    <script>
+      Konva.angleDeg = false;
+
+      const margin = 0.05;
+      const nbands = 4;
+      const nsegments = 10;
+      const noutersegments = 7;
+
+      const startTime = Date.now();
+
+      var width = window.innerWidth;
+      var height = window.innerHeight;
+      var radius = Math.min(width,height) / 2 * (1-margin*2);
+      var centrex = width/2;
+      var centrey = height/2;
+
+      const wind_colors = [
+        '#F0F',
+        '#408',
+        '#00F',
+        '#FF0',
+        '#080',
+        '#F80',
+        '#F00',
+        '#F00'
+      ];
+
+      const winds = [
+        'alma',
+        'lua',
+        'llum',
+        'eto',
+        'vida',
+        'oorun',
+        'ruby'
+      ]
+
+      let colors = [];
+
+      for (i=0;i<nsegments;i++) {
+        colors[i] = 'hsl('+(i*36)+',75%,50%)';
+      }
+
+      const label = new Konva.Text({
+      	x: width*0.05,
+      	y: height*0.05,      	
+      	fill: 'white',
+        opacity: 0.5,
+      	text: '',
+      	fontSize: width*0.04,
+        align: 'left',
+        verticalAlign: 'middle',
+        fontFamily: 'monospace',
+        lineHeight: 1.2
+      });
+
+      const label2 = new Konva.Text({
+        x: width*0.75,
+        y: height*0.05,       
+        fill: 'white',
+        opacity: 0.5,
+        text: '',
+        fontSize: width*0.04,
+        align: 'center',
+        verticalAlign: 'middle',
+        fontFamily: 'monospace'
+      });
+
+      const ratio = Math.sin(Math.PI/nsegments);
+
+      const outer_radius = radius * 0.99;
+      const inner_radius = radius * (nbands-1) / nbands * 1.01;
+      const outer_offset = outer_radius * ratio;
+      const inner_offset = inner_radius * ratio;
+      const extra = 1.5;
+
+      var pieces = [];
+      for (b=0;b<nbands;b++) {
+        pieces[b] = [];
+        for (s=0;s<nsegments;s++) {
+          let scaleFactor = Math.pow((nbands-1)/nbands,b)*0.7;
+          pieces[b][s] = new Konva.Line({
+            rotation: (Math.PI * 2 / nsegments * s),
+            x: centrex,
+            y: centrey,
+            scale: {
+              x: scaleFactor * 0.85,
+              y: scaleFactor * 0.85
+            },
+            points: [
+              -outer_offset,-outer_radius,
+              outer_offset,-outer_radius,
+              inner_offset,-inner_radius,
+              -inner_offset,-inner_radius],
+            fill: 'white',
+            stroke: 'black',
+            strokeWidth: 1,
+            closed: true,
+          });
+        }        
+      }
+      pieces[b] = [];
+      for (s=0;s<noutersegments;s++) {
+        pieces[b][s] = new Konva.Line({
+          rotation: (Math.PI * 2 / noutersegments * s),
+          x: centrex,
+          y: centrey,
+          scale: {
+            x: 0.85,
+            y: 0.85
+          },
+          points: [
+            -outer_offset*extra,-outer_radius,
+            outer_offset*extra,-outer_radius,
+            inner_offset*extra,-inner_radius,
+            -inner_offset*extra,-inner_radius],
+          fill: 'white',
+          stroke: 'black',
+          strokeWidth: 1,
+          closed: true,
+        });
+      }
+
+      const seconds = 24 * 60 * 60;
+
+      var now;
+
+      function getTime() {
+        now = new Date();
+        now = new Date();
+        then = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+          0,0,0),
+        diff = now.getTime() - then.getTime();
+        return Math.floor(diff / 1000);
+      }
+
+      function animate(frame) {
+
+        const t = getTime() % seconds;
+        const states = time_lookup[t];        
+        let [sec, bit, play, sharp, wind] = states;
+
+        sec++;
+        bit++;
+        play++;
+        sharp++;
+
+        sec = (sec==10) ? 'X' : sec%11;
+        bit = (bit==10) ? 'X' : bit%11;
+        play = (play==10) ? 'X' : play%11;
+        sharp = (sharp==10) ? 'X' : sharp%11;
+
+        label.text(
+          "wind: " + winds[wind-1] + "\n" +
+          "sharp: " + sharp + "\n" +
+          "play: " + play + "\n" +
+          "bit: " + bit + "\n" +
+          "sec: " + sec
+
+        );        
+
+        label2.text( now.toLocaleTimeString() );
+
+        for (b=0;b<nbands;b++) {          
+          for (s=0;s<nsegments;s++) {
+            pieces[nbands-1-b][s].fill ((s<states[b]+1) ? colors[states[b]] : 'black');
+          }
+        }
+        for (s=0;s<noutersegments;s++) {
+          pieces[b][s].fill ((s<states[b]) ? wind_colors[states[b]-1] : 'black');
+        }
+
+      }
+
+      function init() {
+        stage = new Konva.Stage({
+          container: 'container',
+          width: width,
+          height: height
+        });
+
+        layer = new Konva.Layer();        
+
+        for (b=0;b<nbands;b++) {
+          for (s=0;s<nsegments;s++) {
+            layer.add(pieces[b][s]);
+          }
+        }
+        for (s=0;s<noutersegments;s++) {
+          layer.add(pieces[b][s]);
+        }
+
+        layer.add(label);
+        layer.add(label2);
+
+        stage.add(layer);
+
+        var anim = new Konva.Animation(animate, layer);
+        anim.start();
+      }
+
+      init();
+    </script>
+  </body>
+</html>
+

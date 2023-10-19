@@ -52,8 +52,10 @@
         'vida',
         'oorun',
         'ruby'
-      ]
+      ];
 
+      const order = [ 0, 5, 2, 4, 8, 1, 7, 5, 3, 9 ];
+      
       let colors = [];
 
       for (i=0;i<nsegments;i++) {
@@ -185,7 +187,8 @@
 
         for (b=0;b<nbands;b++) {          
           for (s=0;s<nsegments;s++) {
-            pieces[nbands-1-b][s].fill ((s<states[b]+1) ? colors[states[b]] : 'black');
+            o = order[s];            
+            pieces[nbands-1-b][o].fill ((s<states[o]+1) ? colors[states[o]] : 'black');
           }
         }
         for (s=0;s<noutersegments;s++) {

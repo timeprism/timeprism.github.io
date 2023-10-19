@@ -53,8 +53,8 @@
         'oorun',
         'ruby'
       ];
-
-      const order = [ 0, 5, 2, 4, 8, 1, 7, 5, 3, 9 ];
+      
+      const order = [ 0, 5, 2, 8, 3, 7, 1, 6, 4, 9];
       
       let colors = [];
 
@@ -187,8 +187,8 @@
 
         for (b=0;b<nbands;b++) {          
           for (s=0;s<nsegments;s++) {
-            o = order[s];            
-            pieces[nbands-1-b][o].fill ((o<states[o]+1) ? colors[states[o]] : 'black');
+            let o = order[s];
+            pieces[nbands-1-b][o].fill ((s<states[b]+1) ? colors[states[b]] : 'black');
           }
         }
         for (s=0;s<noutersegments;s++) {

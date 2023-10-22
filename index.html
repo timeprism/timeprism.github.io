@@ -41,7 +41,8 @@
         '#080',
         '#F80',
         '#F00',
-        '#F00'
+        '#F00',
+        '#FFF'
       ];
 
       const winds = [
@@ -146,8 +147,7 @@
 
       var now;
 
-      function getTime() {
-        now = new Date();
+      function getTime() {        
         now = new Date();
         then = new Date(
           now.getFullYear(),
@@ -158,16 +158,27 @@
         return Math.floor(diff / 1000);
       }
 
-      function animate(frame) {
+      function animate(frame) {        
+        
+        t = getTime() % seconds;
 
-        const t = getTime() % seconds;
-        const states = time_lookup[t];        
-        let [sec, bit, play, sharp, wind] = states;
+        let chime = false;
 
-        sec++;
-        bit++;
-        play++;
-        sharp++;
+        if (t>86386) chime=true;
+
+        let states, sec, bit, play, sharp, wind;
+
+        if (!chime) {
+          states = time_lookup[t];        
+          [sec, bit, play, sharp, wind] = states;
+          sec++;
+          bit++;
+          play++;
+          sharp++;
+        } else {
+          states = [10,10,10,10,7];
+          sec=10; bit=10; play=10; sharp=10; wind =7;
+        }
 
         sec = (sec==10) ? 'X' : sec%11;
         bit = (bit==10) ? 'X' : bit%11;
@@ -175,7 +186,7 @@
         sharp = (sharp==10) ? 'X' : sharp%11;
 
         label.text(
-          "wind: " + winds[wind-1] + "\n" +
+          "wind: " + ((wind<8) ? winds[wind-1] : winds[7])+ "\n" +
           "sharp: " + sharp + "\n" +
           "play: " + play + "\n" +
           "bit: " + bit + "\n" +
@@ -183,7 +194,8 @@
 
         );        
 
-        label2.text( now.toLocaleTimeString() );
+        label2.text( now.toLocaleTimeString() );        
+
 
         for (b=0;b<nbands;b++) {          
           for (s=0;s<nsegments;s++) {
@@ -192,7 +204,7 @@
           }
         }
         for (s=0;s<noutersegments;s++) {
-          pieces[b][s].fill ((s<states[b]) ? wind_colors[states[b]-1] : 'black');
+          pieces[b][s].fill( chime ? (t%2?'red':'white') : ((s<states[b]) ? wind_colors[states[b]-1] : 'black'));
         }
 
       }
